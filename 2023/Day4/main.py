@@ -25,7 +25,9 @@ with open("input.txt") as f:
         win = set(map(int, win.split()))
         nums = set(map(int, nums.split()))
         winners = win.intersection(nums)
-        for j in range(i + 1, min(i + 1 + len(winners), totalcards)):
+        for j in range(i + 1, i + 1 + len(winners)):
+            # You win copies of the cards directly below it.
+            # As such we start at i+1 and go down however many winners there are,
             card_counts[j] += card_counts[i]
     print(sum(card_counts))
 

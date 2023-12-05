@@ -1,5 +1,10 @@
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 // Part 2 Brute Force
 public class Main {
     static long mapThroughCategories(long number, List<long[]> mappings) {
@@ -24,7 +29,7 @@ public class Main {
         System.arraycopy(newEntry, 0, newMapping, mapping.length, 3);
         return newMapping;
     }
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
         List<long[]> mappings = new ArrayList<>();
         List<Long> seedRanges = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader("input.txt"))) {
@@ -45,17 +50,28 @@ public class Main {
                 }
             }
         }
-        long lowestLocation = Long.MAX_VALUE;
+        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        List<Future<Long>> futures = new ArrayList<>();
+
         for (int i = 0; i < seedRanges.size(); i += 2) {
             long start = seedRanges.get(i);
             long length = seedRanges.get(i + 1);
             for (long j = start; j < start + length; j++) {
-                long location = mapThroughCategories(j, mappings);
-                if (location < lowestLocation) {
-                    lowestLocation = location;
-                }
+                final long num = j;
+                futures.add(executor.submit(() -> mapThroughCategories(num, mappings)));
             }
         }
+
+        long lowestLocation = Long.MAX_VALUE;
+        for (Future<Long> future : futures) {
+            long location = future.get();
+            if (location < lowestLocation) {
+                lowestLocation = location;
+            }
+        }
+
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.DAYS);
         System.out.println(lowestLocation);
     }
 }

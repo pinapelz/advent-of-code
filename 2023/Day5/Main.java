@@ -52,12 +52,14 @@ public class Main {
         }
         ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<Long>> futures = new ArrayList<>();
+        int batches = 0;
 
         for (int i = 0; i < seedRanges.size(); i += 2) {
             long start = seedRanges.get(i);
             long length = seedRanges.get(i + 1);
             for (long j = start; j < start + length; j++) {
                 final long num = j;
+                batches++;
                 futures.add(executor.submit(() -> mapThroughCategories(num, mappings)));
             }
         }
@@ -73,5 +75,6 @@ public class Main {
         executor.shutdown();
         executor.awaitTermination(1, TimeUnit.DAYS);
         System.out.println(lowestLocation);
+        System.out.println(batches);
     }
 }
